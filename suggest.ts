@@ -1,23 +1,38 @@
+import Fuse from 'fuse.js';
 import {
   App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo,
   MarkdownView, TFile,
 } from 'obsidian';
+import { DataviewApi, getAPI } from 'obsidian-dataview';
+import { createLink, debugLog } from 'utils';
 
 import type PeopleLinkPluginSettings from './main';
 
 
 interface PeopleCompletion {
 	label: string;
+	file: TFile;
+}
+
+interface DataArrayItem {
+	file: TFile
 }
 
 export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 	private plugin: PeopleLinkPluginSettings;
 	private app: App;
+	private dv: DataviewApi|undefined;
+	private completionsCache: PeopleCompletion[];
 
 	constructor(app: App, plugin: PeopleLinkPluginSettings) {
 		super(app);
 		this.app = app;
 		this.plugin = plugin;
+		this.completionsCache = [];
+
+		// if dataview is not loaded, this has no effect, but don't worry
+		// because when suggestion is triggered, this will be called again
+		this.getDataviewAPI()
 
 		// @ts-ignore
 		this.scope.register(["Shift"], "Enter", (evt: KeyboardEvent) => {
@@ -34,18 +49,61 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 		}
 
 		// catch-all if there are no matches
-		return [{ label: context.query }];
+		return [];
 	}
 
 	getPeopleSuggestions(context: EditorSuggestContext): PeopleCompletion[] {
-		return [
-			{
-				label: "Steve Jobs"
-			},
-			{
-				label: "Bill Gates"
+		const dv = this.getDataviewAPI()
+		debugLog('getPeopleSuggestions', context.query, dv)
+		if (!dv) return []
+
+		const {query} = context
+		const limit = 5
+		if (!query) {
+			return this.completionsCache.slice(0, limit)
+		}
+
+		// create fuse
+		const fuse = new Fuse(this.completionsCache, {
+			keys: ['label'],
+		})
+
+		const result = fuse.search(query, {
+			limit: 5,
+		})
+		debugLog('fuse result', result)
+		return result.map(item => item.item)
+	}
+
+	getDataviewAPI(): DataviewApi|undefined {
+		if (!this.dv) {
+			this.dv = getAPI(this.app);
+			if (this.dv) {
+				// init people files cache
+				this.updatePeopleFilesCache()
+
+				// listen to dataview event on metadata cache
+				this.plugin.registerEvent(
+					this.app.metadataCache.on('dataview:metadata-change', (op, file, oldFile?) => {
+						if (op === 'rename' || op === 'delete') {
+							debugLog('dataview:metadata-change rename|delete', op, file, oldFile)
+							this.updatePeopleFilesCache()
+						}
+					})
+				)
 			}
-		]
+		}
+		return this.dv;
+	}
+
+	updatePeopleFilesCache() {
+		const cache: PeopleCompletion[] = []
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		this.dv!.pages('"People"').sort(o => o.file.ctime, 'desc').forEach(page => {
+			cache.push(pageToCompletion(page as DataArrayItem))
+		})
+		debugLog('updatePeopleFilesCache', cache)
+		this.completionsCache = cache
 	}
 
 	renderSuggestion(suggestion: PeopleCompletion, el: HTMLElement): void {
@@ -64,7 +122,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 		if (useRaw) {
 			result = suggestion.label;
 		} else {
-			result = `[${suggestion.label}]()`
+			result = createLink(this.app, suggestion.file)
 		}
 
 
@@ -108,5 +166,12 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 			end: cursor,
 			query: editor.getRange(startPos, cursor).substring(triggerPrefix.length),
 		};
+	}
+}
+
+function pageToCompletion(page: DataArrayItem): PeopleCompletion {
+	return {
+		label: page.file.name,
+		file: page.file,
 	}
 }

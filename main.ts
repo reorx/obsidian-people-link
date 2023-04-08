@@ -27,7 +27,6 @@ export default class PeopleLinkPlugin extends Plugin {
 	}
 
 	onunload() {
-
 	}
 
 	async loadSettings() {
