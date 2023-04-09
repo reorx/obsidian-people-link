@@ -11,7 +11,7 @@ import type PeopleLinkPluginSettings from './main';
 
 interface PeopleCompletion {
 	label: string;
-	file: TFile;
+	file?: TFile;
 }
 
 interface DataArrayItem {
@@ -49,8 +49,9 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 			return suggestions;
 		}
 
-		// catch-all if there are no matches
-		return [];
+		return [{
+			label: context.query,
+		}];
 	}
 
 	getPeopleSuggestions(context: EditorSuggestContext): PeopleCompletion[] {
@@ -149,13 +150,9 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 		file: TFile
 	): EditorSuggestTriggerInfo | null {
 		const triggerPrefix = this.plugin.settings.triggerPrefix;
-		let startPos = this.context?.start
-		if (!startPos) {
-			// findStartPos handles the case where context will be cancelled before the word is chosen from the CJK IME
-			startPos = findStartPos(cursor, editor, triggerPrefix);
-			if (!startPos) {
-				return null;
-			}
+		const startPos = this.context?.start || {
+			line: cursor.line,
+			ch: cursor.ch - triggerPrefix.length,
 		}
 		const prompt = editor.getRange(startPos, cursor)
 		console.log('PeopleSuggest.onTrigger 0', startPos, prompt, this.context)
@@ -191,28 +188,4 @@ function pageToCompletion(page: DataArrayItem): PeopleCompletion {
 		label: page.file.name,
 		file: page.file,
 	}
-}
-
-const triggerPrefixToCursorMaxDistance = 10
-
-function findStartPos(cursor: EditorPosition, editor: Editor, triggerPrefix: string): EditorPosition|undefined {
-	const line = editor.getLine(cursor.line);
-	const textBeforeCursor = editor.getRange({line: cursor.line, ch: 0}, cursor);
-
-	// find positions of triggerPrefix occurances in textBeforeCursor
-	let pos = -1;
-	const positions = [];
-	while ((pos = textBeforeCursor.indexOf(triggerPrefix, pos + 1)) !== -1) {
-		positions.push(pos);
-	}
-	if (positions.length === 0) return
-	const startPosIndex = positions[positions.length - 1]
-
-	const distance = cursor.ch - startPosIndex - triggerPrefix.length;
-	if (distance > triggerPrefixToCursorMaxDistance) return
-
-	return {
-		line: cursor.line,
-		ch: startPosIndex,
-	};
 }
