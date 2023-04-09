@@ -27,8 +27,8 @@ export default class PeopleLinkPlugin extends Plugin {
 
 	async onload() {
 		// eslint-disable-next-line @typescript-eslint/no-var-requires
-		const pkg = require('./package.json')
-		console.log(`Plugin loading: ${pkg.name} ${pkg.version} BUILD_ENV=${process.env.BUILD_ENV}`)
+		const pkg = require('./manifest.json')
+		console.log(`Plugin loading: ${pkg.id} ${pkg.version} BUILD_ENV=${process.env.BUILD_ENV}`)
 
 		await this.loadSettings();
 

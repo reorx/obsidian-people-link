@@ -3,7 +3,7 @@
 	"name": "People Link",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Use @ to create links to people.",
+	"description": "Easily create links to people within your notes.",
 	"author": "Reorx",
 	"authorUrl": "https://reorx.com",
 	"fundingUrl": "https://github.com/sponsors/reorx",
