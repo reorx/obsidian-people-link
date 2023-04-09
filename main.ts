@@ -115,7 +115,7 @@ class SampleSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Create person if not exists')
-			.setDesc(`Create a person when press enter if one doesn't already exist. If you press Shift + Enter while this option is enabled, new person won't be created.`)
+			.setDesc(`Create a person when press enter if one doesn't already exist.`)
 			.addToggle(text => text
 				.setValue(this.plugin.settings.createPersonIfNotExists)
 				.onChange(async (value) => {

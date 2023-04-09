@@ -57,7 +57,26 @@ updating the most relevant suggestions as you type.
 ![](images/suggestions-ste.png)
 
 You can use the arrow keys or <kbd>⌃ n</kbd>, <kbd>⌃ p</kbd> to navigate through the suggestions.
-When you press enter, the link to the selected note will be created.
+When you press Enter, the link to the selected note will be created.
+
+### Create new note for a person
+
+If the person does not exist yet, the color of the suggestion is dimmed and has a `(new)` suffix,
+indicating that it will be created when you press Enter. This behavior could be disabled in the settings.
+
+![](images/create-person.png)
+
+The new note is create at the specified location in the settings.
+Upon creation, it opens in a split pane,
+but can be adjusted to open in a new tab through the settings.
+
+Unless it's an exact match, the new person suggestion is always appeared at the bottom,
+making it possible to create a new person even if people with similar names are suggested.
+
+### Cancel suggestion
+
+You can press <kbd>⎋</kbd> (ESC) or <kbd>⇧ ⏎</kbd> (Shift + Enter) to cancel the suggestion,
+leaving the content you typed unchanged.
 
 
 ## Settings reference
@@ -76,7 +95,7 @@ When you press enter, the link to the selected note will be created.
 
 - Create person if not exists
 
-	Create a person when press enter if one doesn't already exist. If you press Shift + Enter while this option is enabled, new person won't be created.
+	Create a person when press enter if one doesn't already exist.
 
 - New person location
 
