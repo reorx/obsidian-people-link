@@ -136,7 +136,7 @@ class SampleSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Open new person in split pane')
-			.setDesc(`If disabled, new person will be opened in a new tab`)
+			.setDesc(`If disabled, new person will be opened in a new tab.`)
 			.addToggle(text => text
 				.setValue(this.plugin.settings.openNewPersonInSplitPane)
 				.onChange(async (value) => {
