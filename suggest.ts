@@ -4,7 +4,9 @@ import {
   MarkdownView, TFile,
 } from 'obsidian';
 import { DataviewApi, getAPI } from 'obsidian-dataview';
-import { createLink, debugLog } from 'utils';
+import {
+  debugLog, createFile, generateLinkFromName, openFile, NewPaneDirection, FileViewMode,
+} from 'utils';
 
 import type PeopleLinkPluginSettings from './main';
 
@@ -74,6 +76,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 		// create fuse
 		const fuse = new Fuse(this.completionsCache, {
 			keys: ['label'],
+			threshold: 0.3,
 		})
 
 		const result = fuse.search(query, {
@@ -126,22 +129,44 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 		if (!activeView) {
 			return;
 		}
-
-		const useRaw = event.shiftKey;
-
-		let result = ''
-		if (useRaw) {
-			result = suggestion.label;
-		} else {
-			result = createLink(this.app, suggestion.file)
-		}
-
-
 		if (!this.context) {
-			console.warn('selectSuggestion: no context, canno replace string')
+			console.warn('selectSuggestion: no context, cannot replace string')
 			return
 		}
-		activeView.editor.replaceRange(result, this.context.start, this.context.end);
+
+		const replaceWithLabel = () => {
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			activeView.editor.replaceRange(suggestion.label, this.context!.start, this.context!.end);
+		}
+
+		const useRaw = event.shiftKey;
+		if (useRaw) {
+			return replaceWithLabel()
+		}
+
+		let linkText = ''
+		const file = suggestion.file
+		const { createPersonIfNotExists, newPersonLocation } = this.plugin.settings
+		if (file) {
+			linkText = generateLinkFromName(this.app, file.name)
+		} else {
+			if (!createPersonIfNotExists) {
+				return replaceWithLabel()
+			}
+			// async
+			createFile(newPersonLocation, suggestion.label).then(file => {
+				if (!file) return
+				// open in new split pane
+				openFile(this.app, file, {
+					openInNewPane: true,
+					direction: NewPaneDirection.vertical,
+					focus: true,
+					mode: FileViewMode.default,
+				})
+			})
+			linkText = generateLinkFromName(this.app, suggestion.label)
+		}
+		activeView.editor.replaceRange(linkText, this.context.start, this.context.end);
 	}
 
 	onTrigger(
@@ -155,7 +180,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 			ch: cursor.ch - triggerPrefix.length,
 		}
 		const prompt = editor.getRange(startPos, cursor)
-		console.log('PeopleSuggest.onTrigger 0', startPos, prompt, this.context)
+		// console.log('PeopleSuggest.onTrigger 0', startPos, prompt, this.context)
 
 		if (!prompt.startsWith(triggerPrefix)) {
 			return null;
@@ -168,7 +193,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 			},
 			startPos
 		);
-		console.log('PeopleSuggest.onTrigger 1', prompt, precedingChar)
+		// console.log('PeopleSuggest.onTrigger 1', prompt, precedingChar)
 
 		// Short-circuit if `@` as a part of a word (e.g. part of an email address)
 		if (precedingChar && /[`a-zA-Z0-9]/.test(precedingChar)) {

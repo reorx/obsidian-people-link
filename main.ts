@@ -7,12 +7,16 @@ interface PeopleLinkPluginSettings {
 	triggerPrefix: string;
 	dataviewSource: string;
 	suggestionsLimit: number;
+	createPersonIfNotExists: boolean;
+	newPersonLocation: string;
 }
 
 const DEFAULT_SETTINGS: PeopleLinkPluginSettings = {
 	triggerPrefix: '@',
 	dataviewSource: '"People"',
 	suggestionsLimit: 5,
+	createPersonIfNotExists: true,
+	newPersonLocation: 'People',
 }
 
 export default class PeopleLinkPlugin extends Plugin {
@@ -97,5 +101,25 @@ class SampleSettingTab extends PluginSettingTab {
 					});
 				text.inputEl.setAttribute('type', 'number');
 			})
+
+		new Setting(containerEl)
+			.setName('Create person if not exists')
+			.setDesc(`Create a person when press enter if one doesn't already exist. If you press Shift + Enter while this option is enabled, new person won't be created.`)
+			.addToggle(text => text
+				.setValue(this.plugin.settings.createPersonIfNotExists)
+				.onChange(async (value) => {
+					this.plugin.settings.createPersonIfNotExists = value
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('New person location')
+			.setDesc(`New person will be created at this folder location.`)
+			.addText(text => text
+				.setValue(this.plugin.settings.newPersonLocation)
+				.onChange(async (value) => {
+					this.plugin.settings.newPersonLocation = value
+					await this.plugin.saveSettings();
+				}));
 	}
 }
