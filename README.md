@@ -1,6 +1,6 @@
 # Obsidian People Link
 
-Easily create links to people within your documents.
+Easily create links to people within your notes.
 
 Features:
 
