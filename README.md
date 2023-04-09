@@ -3,5 +3,9 @@
 Use @ to create links to people.
 
 
-TODO:
-- [ ] enter to create new person
+## Credits
+
+This project is made possible by the community surrounding it and especially the projects listed below:
+
+- [liamcain/obsidian-daily-notes-interface](https://github.com/liamcain/obsidian-daily-notes-interface)
+- [argenos/nldates-obsidian](https://github.com/argenos/nldates-obsidian)

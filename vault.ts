@@ -1,4 +1,6 @@
-// from: https://github.com/liamcain/obsidian-daily-notes-interface/blob/main/src/vault.ts
+// This file is copied from: https://github.com/liamcain/obsidian-daily-notes-interface/blob/main/src/vault.ts
+// Copyright (c) 2021 Liam Cain
+// Licensed under MIT
 import { normalizePath } from 'obsidian';
 
 

@@ -30,7 +30,9 @@ export function getVaultConfig(app: App): VaultConfig|undefined {
 }
 
 
-// from https://github.com/argenos/nldates-obsidian/blob/e621a9609211174b964230f5bb890faa574fb7f1/src/utils.ts#L104
+// This function is copied from https://github.com/argenos/nldates-obsidian/blob/e621a9609211174b964230f5bb890faa574fb7f1/src/utils.ts#L104
+// Copyright (c) 2021 Argentina Ortega Sáinz
+// Licensed under MIT
 // TODO find a better way to do this
 export function generateLinkFromName(app: App, filename: string, alias?: string) {
 	const useMarkdownLinks = (app.vault as VaultWithConfig).config?.useMarkdownLinks
