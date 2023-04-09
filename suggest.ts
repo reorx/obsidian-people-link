@@ -11,7 +11,7 @@ import {
 import type PeopleLinkPluginSettings from './main';
 
 
-interface PeopleCompletion {
+interface PersonSuggestion {
 	label: string;
 	file?: TFile;
 }
@@ -22,18 +22,18 @@ interface DataArrayItem {
 
 const fuseThreshold = 0.3
 
-export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
+export default class PeopleSuggest extends EditorSuggest<PersonSuggestion> {
 	private plugin: PeopleLinkPluginSettings;
 	private app: App;
 	private dv: DataviewApi|undefined;
-	private completionsCache: PeopleCompletion[];
-	private completionsCacheVaild: boolean;
+	private suggestionsCache: PersonSuggestion[];
+	private suggestionsCacheIsVaild: boolean;
 
 	constructor(app: App, plugin: PeopleLinkPluginSettings) {
 		super(app);
 		this.app = app;
 		this.plugin = plugin;
-		this.completionsCache = [];
+		this.suggestionsCache = [];
 
 		// if dataview is not loaded, this has no effect, but don't worry
 		// because when suggestion is triggered, this will be called again
@@ -47,25 +47,25 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 		});
 	}
 
-	getSuggestions(context: EditorSuggestContext): PeopleCompletion[] {
+	getSuggestions(context: EditorSuggestContext): PersonSuggestion[] {
 		const dv = this.getDataviewAPI()
 		debugLog('getSuggestions', context.query)
 		if (!dv) return []
 
 		const {suggestionsLimit} = this.plugin.settings
 
-		// check completions cache validity
-		if (!this.completionsCacheVaild) {
-			this.updateCompletionsCache()
+		// check suggestions cache validity
+		if (!this.suggestionsCacheIsVaild) {
+			this.updateSuggestionsCache()
 		}
 
 		const {query} = context
 		if (!query) {
-			return this.completionsCache.slice(0, suggestionsLimit)
+			return this.suggestionsCache.slice(0, suggestionsLimit)
 		}
 
 		// create fuse
-		const fuse = new Fuse(this.completionsCache, {
+		const fuse = new Fuse(this.suggestionsCache, {
 			includeScore: true,
 			keys: ['label'],
 			threshold: fuseThreshold,
@@ -76,7 +76,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 		})
 		debugLog('fuse result', fuseResult, fuseThreshold)
 
-		const suggestions: PeopleCompletion[] = []
+		const suggestions: PersonSuggestion[] = []
 		let hasExactMatch = false
 		for (const item of fuseResult) {
 			// filter out score smaller than threshold because fuse.js somehow not guarantee that
@@ -94,12 +94,12 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 		}
 		debugLog('suggestions', suggestions)
 
-		// add default completion if there is no result or no exact match
-		const defaultCompletion = {
+		// add default suggestion if there is no result or no exact match
+		const defaultSuggestion = {
 			label: context.query,
 		}
 		if (suggestions.length === 0 || !hasExactMatch) {
-			suggestions.push(defaultCompletion)
+			suggestions.push(defaultSuggestion)
 		}
 		return suggestions
 	}
@@ -109,14 +109,14 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 			this.dv = getAPI(this.app);
 			if (this.dv) {
 				// init people files cache
-				this.updateCompletionsCache()
+				this.updateSuggestionsCache()
 
 				// listen to dataview event on metadata cache
 				this.plugin.registerEvent(
 					this.app.metadataCache.on('dataview:metadata-change', (op, file, oldFile?) => {
 						if (op === 'rename' || op === 'delete') {
 							debugLog('dataview:metadata-change rename|delete', op, file, oldFile)
-							this.validateCompletionsCache(false)
+							this.setSuggestionsCacheValidity(false)
 						}
 					})
 				)
@@ -125,25 +125,25 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 		return this.dv;
 	}
 
-	updateCompletionsCache() {
+	updateSuggestionsCache() {
 		const {dataviewSource} = this.plugin.settings
 
-		const cache: PeopleCompletion[] = []
+		const cache: PersonSuggestion[] = []
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		this.dv!.pages(dataviewSource).sort(o => o.file.ctime, 'desc').forEach(page => {
-			cache.push(pageToCompletion(page as DataArrayItem))
+			cache.push(pageToSuggestion(page as DataArrayItem))
 		})
-		debugLog('updateCompletionsCache', cache)
-		this.completionsCache = cache
-		this.validateCompletionsCache(true)
+		debugLog('updateSuggestionsCache', cache)
+		this.suggestionsCache = cache
+		this.setSuggestionsCacheValidity(true)
 	}
 
-	validateCompletionsCache(flag: boolean) {
-		debugLog('set completeionsCacheValid', flag)
-		this.completionsCacheVaild = flag
+	setSuggestionsCacheValidity(flag: boolean) {
+		debugLog('setSuggestionsCacheValidity', flag)
+		this.suggestionsCacheIsVaild = flag
 	}
 
-	renderSuggestion(suggestion: PeopleCompletion, el: HTMLElement): void {
+	renderSuggestion(suggestion: PersonSuggestion, el: HTMLElement): void {
 		if (suggestion.file) {
 			el.setText(suggestion.label);
 		} else {
@@ -151,7 +151,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 		}
 	}
 
-	selectSuggestion(suggestion: PeopleCompletion, event: KeyboardEvent | MouseEvent): void {
+	selectSuggestion(suggestion: PersonSuggestion, event: KeyboardEvent | MouseEvent): void {
 		debugLog('selectSuggestion', event)
 		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (!activeView) {
@@ -192,8 +192,8 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 					mode: FileViewMode.default,
 				}).then(() => {
 					// create file via function won't trigger 'dataview:metadata-change' event,
-					// so we manually invalidate completions cache here
-					this.validateCompletionsCache(false)
+					// so we manually invalidate suggestions cache here
+					this.setSuggestionsCacheValidity(false)
 				})
 			})
 			linkText = generateLinkFromName(this.app, suggestion.label)
@@ -239,7 +239,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 	}
 }
 
-function pageToCompletion(page: DataArrayItem): PeopleCompletion {
+function pageToSuggestion(page: DataArrayItem): PersonSuggestion {
 	return {
 		label: page.file.name,
 		file: page.file,

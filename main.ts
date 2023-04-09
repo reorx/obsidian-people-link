@@ -123,7 +123,7 @@ class SampleSettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.newPersonLocation)
 				.onChange(async (value) => {
 					this.plugin.settings.newPersonLocation = value
-					this.plugin.peopleSuggest.validateCompletionsCache(false)
+					this.plugin.peopleSuggest.setSuggestionsCacheValidity(false)
 					await this.plugin.saveSettings();
 				}));
 
