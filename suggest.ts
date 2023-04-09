@@ -25,7 +25,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 	private app: App;
 	private dv: DataviewApi|undefined;
 	private completionsCache: PeopleCompletion[];
-	private completionsCacheKey: string;
+	private completionsCacheVaild: boolean;
 
 	constructor(app: App, plugin: PeopleLinkPluginSettings) {
 		super(app);
@@ -58,13 +58,13 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 
 	getPeopleSuggestions(context: EditorSuggestContext): PeopleCompletion[] {
 		const dv = this.getDataviewAPI()
-		debugLog('getPeopleSuggestions', context.query, dv)
+		debugLog('getPeopleSuggestions', context.query)
 		if (!dv) return []
 
-		const {suggestionsLimit, dataviewSource} = this.plugin.settings
+		const {suggestionsLimit} = this.plugin.settings
 
-		// validate completions cache
-		if (this.completionsCacheKey !== dataviewSource) {
+		// check completions cache validity
+		if (!this.completionsCacheVaild) {
 			this.updateCompletionsCache()
 		}
 
@@ -75,6 +75,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 
 		// create fuse
 		const fuse = new Fuse(this.completionsCache, {
+			includeScore: true,
 			keys: ['label'],
 			threshold: 0.3,
 		})
@@ -98,7 +99,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 					this.app.metadataCache.on('dataview:metadata-change', (op, file, oldFile?) => {
 						if (op === 'rename' || op === 'delete') {
 							debugLog('dataview:metadata-change rename|delete', op, file, oldFile)
-							this.updateCompletionsCache()
+							this.validateCompletionsCache(false)
 						}
 					})
 				)
@@ -117,7 +118,12 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 		})
 		debugLog('updateCompletionsCache', cache)
 		this.completionsCache = cache
-		this.completionsCacheKey = dataviewSource
+		this.validateCompletionsCache(true)
+	}
+
+	validateCompletionsCache(flag: boolean) {
+		debugLog('set completeionsCacheValid', flag)
+		this.completionsCacheVaild = flag
 	}
 
 	renderSuggestion(suggestion: PeopleCompletion, el: HTMLElement): void {
@@ -163,6 +169,10 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 					direction: openNewPersonInSplitPane ? NewPaneDirection.vertical : undefined,
 					focus: true,
 					mode: FileViewMode.default,
+				}).then(() => {
+					// create file via function won't trigger 'dataview:metadata-change' event,
+					// so we manually invalidate completions cache here
+					this.validateCompletionsCache(false)
 				})
 			})
 			linkText = generateLinkFromName(this.app, suggestion.label)
@@ -181,7 +191,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 			ch: cursor.ch - triggerPrefix.length,
 		}
 		const prompt = editor.getRange(startPos, cursor)
-		console.log('PeopleSuggest.onTrigger 0', startPos, prompt, this.context)
+		// console.log('PeopleSuggest.onTrigger', startPos, prompt, this.context)
 
 		if (!prompt.startsWith(triggerPrefix)) {
 			return null;
@@ -194,7 +204,6 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 			},
 			startPos
 		);
-		console.log('PeopleSuggest.onTrigger 1', prompt, precedingChar)
 
 		// Short-circuit if `@` as a part of a word (e.g. part of an email address)
 		if (precedingChar && /[`a-zA-Z0-9]/.test(precedingChar)) {

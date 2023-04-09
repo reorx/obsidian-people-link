@@ -23,6 +23,7 @@ const DEFAULT_SETTINGS: PeopleLinkPluginSettings = {
 
 export default class PeopleLinkPlugin extends Plugin {
 	settings: PeopleLinkPluginSettings;
+	peopleSuggest: PeopleSuggest;
 
 	async onload() {
 		// eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -31,7 +32,8 @@ export default class PeopleLinkPlugin extends Plugin {
 
 		await this.loadSettings();
 
-		this.registerEditorSuggest(new PeopleSuggest(this.app, this));
+		this.peopleSuggest = new PeopleSuggest(this.app, this)
+		this.registerEditorSuggest(this.peopleSuggest);
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new SampleSettingTab(this.app, this));
@@ -121,6 +123,7 @@ class SampleSettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.newPersonLocation)
 				.onChange(async (value) => {
 					this.plugin.settings.newPersonLocation = value
+					this.plugin.peopleSuggest.validateCompletionsCache(false)
 					await this.plugin.saveSettings();
 				}));
 
