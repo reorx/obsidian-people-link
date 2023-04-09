@@ -84,10 +84,12 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 			if (score > fuseThreshold) {
 				continue
 			}
-			suggestions.push(item.item)
 			// exact match is case sensitive
 			if (item.item.label === query) {
 				hasExactMatch = true
+				suggestions.unshift(item.item)
+			} else {
+				suggestions.push(item.item)
 			}
 		}
 		debugLog('suggestions', suggestions)
