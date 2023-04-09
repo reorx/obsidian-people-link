@@ -66,9 +66,10 @@ class SampleSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		if (!getAPI()) {
-			containerEl.createEl('blockquote', {
-				text: 'This plugin requires Dataview to be installed.'
-			})
+			containerEl.createEl('div').innerHTML = `
+			<div style="color: var(--color-red); font-size: 1.5em; font-weight: bold; border: 1px solid var(--color-red); padding: 1em; margin: 0.5em 0 1.5em">
+				To ensure proper functionality, you must install <a href="https://github.com/blacksmithgu/obsidian-dataview">Obsidian Dataview</a> alongside this plugin.
+			</div>`;
 		}
 
 		containerEl.createEl('h2', {text: 'People Link Settings'});

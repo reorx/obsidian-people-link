@@ -11,8 +11,7 @@ Features:
 ## Installation
 
 **Prerequisite**:
-This plugin requires [Obsidian Dataview](https://github.com/blacksmithgu/obsidian-dataview)
-to work properly, make sure you have it installed.
+To ensure proper functionality, you must install [Obsidian Dataview](https://github.com/blacksmithgu/obsidian-dataview) alongside this plugin.
 
 This plugin is currently under review by the moderators before added to
 the official plugins directory. if you want to try it now,
