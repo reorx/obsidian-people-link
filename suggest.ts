@@ -20,6 +20,8 @@ interface DataArrayItem {
 	file: TFile
 }
 
+const fuseThreshold = 0.1
+
 export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 	private plugin: PeopleLinkPluginSettings;
 	private app: App;
@@ -77,14 +79,17 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 		const fuse = new Fuse(this.completionsCache, {
 			includeScore: true,
 			keys: ['label'],
-			threshold: 0.3,
+			threshold: fuseThreshold,
 		})
 
-		const result = fuse.search(query, {
+		const fuseResult = fuse.search(query, {
 			limit: 5,
 		})
-		debugLog('fuse result', result)
-		return result.map(item => item.item)
+		debugLog('fuse result', fuseResult, fuseThreshold)
+		// filter out score smaller than threshold because fuse.js somehow not guarantee that
+		const result = fuseResult.filter(item => (item.score || 1) < fuseThreshold).map(item => item.item)
+		debugLog('eventual result', result)
+		return result
 	}
 
 	getDataviewAPI(): DataviewApi|undefined {
