@@ -130,7 +130,7 @@ export default class PeopleSuggest extends EditorSuggest<PersonSuggestion> {
 
 		const cache: PersonSuggestion[] = []
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		this.dv!.pages(dataviewSource).sort(o => o.file.ctime, 'desc').forEach(page => {
+		this.dv!.pages(dataviewSource).sort(o => o.file.mtime, 'desc').forEach(page => {
 			cache.push(pageToSuggestion(page as DataArrayItem))
 		})
 		debugLog('updateSuggestionsCache', cache)
