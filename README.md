@@ -27,7 +27,7 @@ After installing the plugin, you should first enable it and open the settings mo
 ![](images/settings.png)
 
 The most important setting is "Dataview Source", it's used to identify notes for people,
-the default value is `"People"` (no trailing slash), which means to search people from the `People/` folder
+the default value is `"People"` (no trailing slash), which means to search people from the "People" folder
 and all its sub folders.
 You should change it according to your vault's structure.
 
@@ -35,7 +35,7 @@ You can also use tags to define "Dataview Source", for example `#contact`,
 this will search all the notes with the tag `#contact`.
 
 If you have multiple folders or tags for people, you can use the `or` operator,
-the following example will search all the notes with the tag `#contact` or the folder `People/`:
+the following example will search all the notes with the tag `#contact` or the folder "People":
 `#contact or "People"`.
 
 For more information, please refer to the Dataview documentation of [Sources](https://blacksmithgu.github.io/obsidian-dataview/reference/sources/).
@@ -80,27 +80,27 @@ leaving the content you typed unchanged.
 
 ## Settings reference
 
-- Trigger Prefix
+- **Trigger Prefix**
 
 	Character(s) that will cause the people autosuggest to open
 
-- Dataview Source
+- **Dataview Source**
 
 	The dataview source is used to identify notes for people. It can be folders, tags, files, or a combination of them. Check more information at Dataview docs: [Sources](https://blacksmithgu.github.io/obsidian-dataview/reference/sources/)
 
-- Suggestions Limit
+- **Suggestions Limit**
 
 	The maximum number of suggestions to show.
 
-- Create person if not exists
+- **Create person if not exists**
 
 	Create a person when press enter if one doesn't already exist.
 
-- New person location
+- **New person location**
 
 	New person will be created at this folder location.
 
-- Open new person in split pane
+- **Open new person in split pane**
 
 	If disabled, new person will be opened in a new tab.
 
