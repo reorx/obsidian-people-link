@@ -149,12 +149,18 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 		file: TFile
 	): EditorSuggestTriggerInfo | null {
 		const triggerPrefix = this.plugin.settings.triggerPrefix;
-		const startPos = this.context?.start || {
-			line: cursor.line,
-			ch: cursor.ch - triggerPrefix.length,
-		};
+		let startPos = this.context?.start
+		if (!startPos) {
+			// findStartPos handles the case where context will be cancelled before the word is chosen from the CJK IME
+			startPos = findStartPos(cursor, editor, triggerPrefix);
+			if (!startPos) {
+				return null;
+			}
+		}
+		const prompt = editor.getRange(startPos, cursor)
+		console.log('PeopleSuggest.onTrigger 0', startPos, prompt, this.context)
 
-		if (!editor.getRange(startPos, cursor).startsWith(triggerPrefix)) {
+		if (!prompt.startsWith(triggerPrefix)) {
 			return null;
 		}
 
@@ -165,6 +171,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 			},
 			startPos
 		);
+		console.log('PeopleSuggest.onTrigger 1', prompt, precedingChar)
 
 		// Short-circuit if `@` as a part of a word (e.g. part of an email address)
 		if (precedingChar && /[`a-zA-Z0-9]/.test(precedingChar)) {
@@ -184,4 +191,28 @@ function pageToCompletion(page: DataArrayItem): PeopleCompletion {
 		label: page.file.name,
 		file: page.file,
 	}
+}
+
+const triggerPrefixToCursorMaxDistance = 10
+
+function findStartPos(cursor: EditorPosition, editor: Editor, triggerPrefix: string): EditorPosition|undefined {
+	const line = editor.getLine(cursor.line);
+	const textBeforeCursor = editor.getRange({line: cursor.line, ch: 0}, cursor);
+
+	// find positions of triggerPrefix occurances in textBeforeCursor
+	let pos = -1;
+	const positions = [];
+	while ((pos = textBeforeCursor.indexOf(triggerPrefix, pos + 1)) !== -1) {
+		positions.push(pos);
+	}
+	if (positions.length === 0) return
+	const startPosIndex = positions[positions.length - 1]
+
+	const distance = cursor.ch - startPosIndex - triggerPrefix.length;
+	if (distance > triggerPrefixToCursorMaxDistance) return
+
+	return {
+		line: cursor.line,
+		ch: startPosIndex,
+	};
 }
