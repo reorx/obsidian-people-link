@@ -83,9 +83,16 @@ class SampleSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		new Setting(containerEl)
+		const dataviewSetting = new Setting(containerEl)
 			.setName('Dataview Source')
-			.setDesc(`A dataview source is something that identifies a set of files, tasks, or other data. It can be folders, tags, files, or a combination of them. Check more information at: https://blacksmithgu.github.io/obsidian-dataview/reference/sources/`)
+			.setDesc(`The dataview source is used to identify notes for people. It can be folders, tags, files, or a combination of them. Check more information at Dataview docs: `);
+		dataviewSetting.descEl.createEl('a', {
+			text: 'Sources',
+			attr: {
+				href: 'https://blacksmithgu.github.io/obsidian-dataview/reference/sources/'
+			}
+		})
+		dataviewSetting
 			.addText(text => text
 				.setValue(this.plugin.settings.dataviewSource)
 				.onChange(async (value) => {
