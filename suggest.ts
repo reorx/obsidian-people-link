@@ -20,7 +20,7 @@ interface DataArrayItem {
 	file: TFile
 }
 
-const fuseThreshold = 0.1
+const fuseThreshold = 0.3
 
 export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 	private plugin: PeopleLinkPluginSettings;
@@ -48,19 +48,8 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 	}
 
 	getSuggestions(context: EditorSuggestContext): PeopleCompletion[] {
-		const suggestions = this.getPeopleSuggestions(context);
-		if (suggestions.length) {
-			return suggestions;
-		}
-
-		return [{
-			label: context.query,
-		}];
-	}
-
-	getPeopleSuggestions(context: EditorSuggestContext): PeopleCompletion[] {
 		const dv = this.getDataviewAPI()
-		debugLog('getPeopleSuggestions', context.query)
+		debugLog('getSuggestions', context.query)
 		if (!dv) return []
 
 		const {suggestionsLimit} = this.plugin.settings
@@ -86,10 +75,31 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 			limit: 5,
 		})
 		debugLog('fuse result', fuseResult, fuseThreshold)
-		// filter out score smaller than threshold because fuse.js somehow not guarantee that
-		const result = fuseResult.filter(item => (item.score || 1) < fuseThreshold).map(item => item.item)
-		debugLog('eventual result', result)
-		return result
+
+		const suggestions: PeopleCompletion[] = []
+		let hasExactMatch = false
+		for (const item of fuseResult) {
+			// filter out score smaller than threshold because fuse.js somehow not guarantee that
+			const score = item.score || 1
+			if (score > fuseThreshold) {
+				continue
+			}
+			suggestions.push(item.item)
+			// exact match is case sensitive
+			if (item.item.label === query) {
+				hasExactMatch = true
+			}
+		}
+		debugLog('suggestions', suggestions)
+
+		// add default completion if there is no result or no exact match
+		const defaultCompletion = {
+			label: context.query,
+		}
+		if (suggestions.length === 0 || !hasExactMatch) {
+			suggestions.push(defaultCompletion)
+		}
+		return suggestions
 	}
 
 	getDataviewAPI(): DataviewApi|undefined {
@@ -132,7 +142,11 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 	}
 
 	renderSuggestion(suggestion: PeopleCompletion, el: HTMLElement): void {
-		el.setText(suggestion.label);
+		if (suggestion.file) {
+			el.setText(suggestion.label);
+		} else {
+			el.innerHTML = `<span style="color: var(--color-base-40);">${suggestion.label}</span><span>&nbsp;(new)</span>`
+		}
 	}
 
 	selectSuggestion(suggestion: PeopleCompletion, event: KeyboardEvent | MouseEvent): void {
