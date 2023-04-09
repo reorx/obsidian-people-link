@@ -9,6 +9,7 @@ interface PeopleLinkPluginSettings {
 	suggestionsLimit: number;
 	createPersonIfNotExists: boolean;
 	newPersonLocation: string;
+	openNewPersonInSplitPane: boolean;
 }
 
 const DEFAULT_SETTINGS: PeopleLinkPluginSettings = {
@@ -17,6 +18,7 @@ const DEFAULT_SETTINGS: PeopleLinkPluginSettings = {
 	suggestionsLimit: 5,
 	createPersonIfNotExists: true,
 	newPersonLocation: 'People',
+	openNewPersonInSplitPane: true,
 }
 
 export default class PeopleLinkPlugin extends Plugin {
@@ -119,6 +121,16 @@ class SampleSettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.newPersonLocation)
 				.onChange(async (value) => {
 					this.plugin.settings.newPersonLocation = value
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('Open new person in split pane')
+			.setDesc(`If disabled, new person will be opened in a new tab`)
+			.addToggle(text => text
+				.setValue(this.plugin.settings.openNewPersonInSplitPane)
+				.onChange(async (value) => {
+					this.plugin.settings.openNewPersonInSplitPane = value
 					await this.plugin.saveSettings();
 				}));
 	}

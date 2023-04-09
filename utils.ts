@@ -80,7 +80,7 @@ export async function openFile(app: App, file: TFile, optional?: {openInNewPane?
 	if (optional?.openInNewPane && optional?.direction) {
 		leaf = app.workspace.getLeaf('split', optional.direction)
 	} else {
-		leaf = app.workspace.getLeaf()
+		leaf = app.workspace.getLeaf('tab')
 	}
 
 	await leaf.openFile(file)

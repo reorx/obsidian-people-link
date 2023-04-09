@@ -125,6 +125,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 	}
 
 	selectSuggestion(suggestion: PeopleCompletion, event: KeyboardEvent | MouseEvent): void {
+		debugLog('selectSuggestion', event)
 		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (!activeView) {
 			return;
@@ -146,7 +147,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 
 		let linkText = ''
 		const file = suggestion.file
-		const { createPersonIfNotExists, newPersonLocation } = this.plugin.settings
+		const { createPersonIfNotExists, newPersonLocation, openNewPersonInSplitPane } = this.plugin.settings
 		if (file) {
 			linkText = generateLinkFromName(this.app, file.name)
 		} else {
@@ -159,7 +160,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 				// open in new split pane
 				openFile(this.app, file, {
 					openInNewPane: true,
-					direction: NewPaneDirection.vertical,
+					direction: openNewPersonInSplitPane ? NewPaneDirection.vertical : undefined,
 					focus: true,
 					mode: FileViewMode.default,
 				})
@@ -180,7 +181,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 			ch: cursor.ch - triggerPrefix.length,
 		}
 		const prompt = editor.getRange(startPos, cursor)
-		// console.log('PeopleSuggest.onTrigger 0', startPos, prompt, this.context)
+		console.log('PeopleSuggest.onTrigger 0', startPos, prompt, this.context)
 
 		if (!prompt.startsWith(triggerPrefix)) {
 			return null;
@@ -193,7 +194,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 			},
 			startPos
 		);
-		// console.log('PeopleSuggest.onTrigger 1', prompt, precedingChar)
+		console.log('PeopleSuggest.onTrigger 1', prompt, precedingChar)
 
 		// Short-circuit if `@` as a part of a word (e.g. part of an email address)
 		if (precedingChar && /[`a-zA-Z0-9]/.test(precedingChar)) {
