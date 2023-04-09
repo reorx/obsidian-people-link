@@ -23,6 +23,7 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 	private app: App;
 	private dv: DataviewApi|undefined;
 	private completionsCache: PeopleCompletion[];
+	private completionsCacheKey: string;
 
 	constructor(app: App, plugin: PeopleLinkPluginSettings) {
 		super(app);
@@ -57,10 +58,16 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 		debugLog('getPeopleSuggestions', context.query, dv)
 		if (!dv) return []
 
+		const {suggestionsLimit, dataviewSource} = this.plugin.settings
+
+		// validate completions cache
+		if (this.completionsCacheKey !== dataviewSource) {
+			this.updateCompletionsCache()
+		}
+
 		const {query} = context
-		const limit = 5
 		if (!query) {
-			return this.completionsCache.slice(0, limit)
+			return this.completionsCache.slice(0, suggestionsLimit)
 		}
 
 		// create fuse
@@ -80,14 +87,14 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 			this.dv = getAPI(this.app);
 			if (this.dv) {
 				// init people files cache
-				this.updatePeopleFilesCache()
+				this.updateCompletionsCache()
 
 				// listen to dataview event on metadata cache
 				this.plugin.registerEvent(
 					this.app.metadataCache.on('dataview:metadata-change', (op, file, oldFile?) => {
 						if (op === 'rename' || op === 'delete') {
 							debugLog('dataview:metadata-change rename|delete', op, file, oldFile)
-							this.updatePeopleFilesCache()
+							this.updateCompletionsCache()
 						}
 					})
 				)
@@ -96,14 +103,17 @@ export default class PeopleSuggest extends EditorSuggest<PeopleCompletion> {
 		return this.dv;
 	}
 
-	updatePeopleFilesCache() {
+	updateCompletionsCache() {
+		const {dataviewSource} = this.plugin.settings
+
 		const cache: PeopleCompletion[] = []
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		this.dv!.pages('"People"').sort(o => o.file.ctime, 'desc').forEach(page => {
+		this.dv!.pages(dataviewSource).sort(o => o.file.ctime, 'desc').forEach(page => {
 			cache.push(pageToCompletion(page as DataArrayItem))
 		})
-		debugLog('updatePeopleFilesCache', cache)
+		debugLog('updateCompletionsCache', cache)
 		this.completionsCache = cache
+		this.completionsCacheKey = dataviewSource
 	}
 
 	renderSuggestion(suggestion: PeopleCompletion, el: HTMLElement): void {

@@ -1,13 +1,18 @@
 import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import { getAPI } from 'obsidian-dataview';
 import PeopleSuggest from 'suggest';
 
 
 interface PeopleLinkPluginSettings {
 	triggerPrefix: string;
+	dataviewSource: string;
+	suggestionsLimit: number;
 }
 
 const DEFAULT_SETTINGS: PeopleLinkPluginSettings = {
-	triggerPrefix: '@'
+	triggerPrefix: '@',
+	dataviewSource: '"People"',
+	suggestionsLimit: 5,
 }
 
 export default class PeopleLinkPlugin extends Plugin {
@@ -52,17 +57,45 @@ class SampleSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'Settings for my awesome plugin.'});
+		if (!getAPI()) {
+			containerEl.createEl('blockquote', {
+				text: 'This plugin requires Dataview to be installed.'
+			})
+		}
+
+		containerEl.createEl('h2', {text: 'People Link Settings'});
 
 		new Setting(containerEl)
 			.setName('Trigger Prefix')
 			.setDesc('Character(s) that will cause the people autosuggest to open')
 			.addText(text => text
-				.setPlaceholder('Enter your secret')
 				.setValue(this.plugin.settings.triggerPrefix)
 				.onChange(async (value) => {
 					this.plugin.settings.triggerPrefix = value;
 					await this.plugin.saveSettings();
 				}));
+
+		new Setting(containerEl)
+			.setName('Dataview Source')
+			.setDesc(`A dataview source is something that identifies a set of files, tasks, or other data. It can be folders, tags, files, or a combination of them. Check more information at: https://blacksmithgu.github.io/obsidian-dataview/reference/sources/`)
+			.addText(text => text
+				.setValue(this.plugin.settings.dataviewSource)
+				.onChange(async (value) => {
+					this.plugin.settings.dataviewSource = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('Suggestions Limit')
+			.setDesc(`The maximum number of suggestions to show.`)
+			.addText(text => {
+				text
+					.setValue(this.plugin.settings.suggestionsLimit.toString())
+					.onChange(async (value) => {
+						this.plugin.settings.suggestionsLimit = parseInt(value);
+						await this.plugin.saveSettings();
+					});
+				text.inputEl.setAttribute('type', 'number');
+			})
 	}
 }
