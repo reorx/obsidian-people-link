@@ -67,11 +67,11 @@ class PeopleLinkSettingTab extends PluginSettingTab {
 
 		const warnings = []
 		if (!getAPI()) {
-			warnings.push(`To ensure proper functionality, you must install <a href="https://github.com/blacksmithgu/obsidian-dataview">Obsidian Dataview</a> alongside this plugin.`)
+			warnings.push(`To ensure proper functionality, you must install <a href="obsidian://show-plugin?id=dataview">Obsidian Dataview</a> alongside this plugin.`)
 		}
 		const nldatesPlugin = this.app.plugins.plugins['nldates-obsidian']
-		if (nldatesPlugin?.settings.autocompleteTriggerPhrase === this.plugin.settings.triggerPrefix) {
-			warnings.push(`Trigger prefix ${this.plugin.settings.triggerPrefix} is conflict with <a href="https://github.com/argenos/nldates-obsidian">Natural Language Dates</a>. Please change one of them, or disable the autosuggest feature in that plugin.`)
+		if (nldatesPlugin?.settings.isAutosuggestEnabled && nldatesPlugin?.settings.autocompleteTriggerPhrase === this.plugin.settings.triggerPrefix) {
+			warnings.push(`Trigger prefix ${this.plugin.settings.triggerPrefix} is conflict with <a href="obsidian://show-plugin?id=nldates-obsidian">Natural Language Dates</a>. Please change one of them, or disable the autosuggest feature in that plugin.`)
 		}
 		if (warnings.length) {
 			containerEl.createEl('div').innerHTML = `
