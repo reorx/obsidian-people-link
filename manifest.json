@@ -1,7 +1,7 @@
 {
 	"id": "people-link",
 	"name": "People Link",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"minAppVersion": "0.15.0",
 	"description": "Easily create links to people within your notes.",
 	"author": "Reorx",
