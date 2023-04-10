@@ -36,7 +36,7 @@ export default class PeopleLinkPlugin extends Plugin {
 		this.registerEditorSuggest(this.peopleSuggest);
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new PeopleLinkSettingTab(this.app, this));
 	}
 
 	onunload() {
@@ -52,7 +52,7 @@ export default class PeopleLinkPlugin extends Plugin {
 }
 
 
-class SampleSettingTab extends PluginSettingTab {
+class PeopleLinkSettingTab extends PluginSettingTab {
 	plugin: PeopleLinkPlugin;
 
 	constructor(app: App, plugin: PeopleLinkPlugin) {
@@ -65,10 +65,21 @@ class SampleSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
+		const warnings = []
 		if (!getAPI()) {
+			warnings.push(`To ensure proper functionality, you must install <a href="https://github.com/blacksmithgu/obsidian-dataview">Obsidian Dataview</a> alongside this plugin.`)
+		}
+		const nldatesPlugin = this.app.plugins.plugins['nldates-obsidian']
+		if (nldatesPlugin?.settings.autocompleteTriggerPhrase === this.plugin.settings.triggerPrefix) {
+			warnings.push(`Trigger prefix ${this.plugin.settings.triggerPrefix} is conflict with <a href="https://github.com/argenos/nldates-obsidian">Natural Language Dates</a>. Please change one of them, or disable the autosuggest feature in that plugin.`)
+		}
+		if (warnings.length) {
 			containerEl.createEl('div').innerHTML = `
-			<div style="color: var(--color-red); font-size: 1.5em; font-weight: bold; border: 1px solid var(--color-red); padding: 1em; margin: 0.5em 0 1.5em">
-				To ensure proper functionality, you must install <a href="https://github.com/blacksmithgu/obsidian-dataview">Obsidian Dataview</a> alongside this plugin.
+			<div style="color: var(--color-red); font-size: 1.2em; border: 1px solid var(--color-red); padding: 1em; padding-bottom: 0; margin: 0.5em 0 1.5em">
+				<b>Warnings</b>
+				<ul style="padding-left: 1em;">
+					${warnings.map(warning => `<li style="margin-bottom: .5em;">${warning}</li>`).join('')}
+				</ul>
 			</div>`;
 		}
 
