@@ -215,14 +215,8 @@ export default class PeopleSuggest extends EditorSuggest<PersonSuggestion> {
 		file: TFile
 	): EditorSuggestTriggerInfo | null {
 		const triggerPrefix = this.plugin.settings.triggerPrefix;
-		const startPos = this.context?.start || {
-			line: cursor.line,
-			ch: cursor.ch - triggerPrefix.length,
-		}
-		const prompt = editor.getRange(startPos, cursor)
-		// console.log('PeopleSuggest.onTrigger', startPos, prompt, this.context)
-
-		if (!prompt.startsWith(triggerPrefix)) {
+		const startPos = findStartPos(cursor, editor, triggerPrefix, this.context)
+		if (!startPos) {
 			return null;
 		}
 
@@ -251,5 +245,33 @@ function pageToSuggestion(page: DataArrayItem): PersonSuggestion {
 	return {
 		label: page.file.name,
 		file: page.file,
+	}
+}
+
+function findStartPos(cursor: EditorPosition, editor: Editor, triggerPrefix: string, context: EditorSuggestContext|null): EditorPosition|undefined {
+	let startPos = context?.start
+	if (startPos) {
+		if (editor.getRange(startPos, cursor).startsWith(triggerPrefix)) {
+			return startPos
+		} else {
+			return
+		}
+	} else {
+		startPos = {
+			line: cursor.line,
+			ch: cursor.ch - triggerPrefix.length,
+		}
+		if (editor.getRange(startPos, cursor).startsWith(triggerPrefix)) {
+			return startPos;
+		}
+		// If no person is found but the user want to create a new person,
+		// the first character `@` returns empty suggestion which ends the context,
+		// in this case we need to search 1 more character to the left
+		// to start the context again.
+		startPos.ch -= 1
+		if (startPos.ch >= 0 && editor.getRange(startPos, cursor).startsWith(triggerPrefix)) {
+			return startPos;
+		}
+		return
 	}
 }
