@@ -1,4 +1,5 @@
 import Fuse from 'fuse.js';
+import { DataviewErrorModal } from 'modal';
 import {
   App, Editor, EditorPosition, EditorSuggest, EditorSuggestContext, EditorSuggestTriggerInfo,
   MarkdownView, TFile,
@@ -14,6 +15,7 @@ import type PeopleLinkPluginSettings from './main';
 interface PersonSuggestion {
 	label: string;
 	file?: TFile;
+	dataviewError?: boolean;
 }
 
 interface DataArrayItem {
@@ -50,7 +52,10 @@ export default class PeopleSuggest extends EditorSuggest<PersonSuggestion> {
 	getSuggestions(context: EditorSuggestContext): PersonSuggestion[] {
 		const dv = this.getDataviewAPI()
 		debugLog('getSuggestions', context.query)
-		if (!dv) return []
+		if (!dv) return [{
+			label: 'Error: cannot get Dataview plugin',
+			dataviewError: true,
+		}]
 
 		const {suggestionsLimit} = this.plugin.settings
 
@@ -144,7 +149,9 @@ export default class PeopleSuggest extends EditorSuggest<PersonSuggestion> {
 	}
 
 	renderSuggestion(suggestion: PersonSuggestion, el: HTMLElement): void {
-		if (suggestion.file) {
+		if (suggestion.dataviewError) {
+			el.innerHTML = `<span style="color: var(--color-red);">${suggestion.label}</span><br><span>Enter to show more instructions</span>`
+		} else if (suggestion.file) {
 			el.setText(suggestion.label);
 		} else {
 			el.innerHTML = `<span style="color: var(--color-base-40);">${suggestion.label}</span><span>&nbsp;(new)</span>`
@@ -153,6 +160,10 @@ export default class PeopleSuggest extends EditorSuggest<PersonSuggestion> {
 
 	selectSuggestion(suggestion: PersonSuggestion, event: KeyboardEvent | MouseEvent): void {
 		debugLog('selectSuggestion', event)
+		if (suggestion.dataviewError) {
+			new DataviewErrorModal(this.app).open()
+			return
+		}
 		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (!activeView) {
 			return;
