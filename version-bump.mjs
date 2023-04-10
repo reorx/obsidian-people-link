@@ -12,7 +12,6 @@ const rl = readline.createInterface({
 let newVersion
 rl.question(`Input new version (current is ${currentVersion}): `, (value) => {
 	newVersion = value
-	console.log('inputed', value, newVersion)
 	rl.close();
 
 	// update version in package.json
