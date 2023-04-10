@@ -11,7 +11,8 @@ Features:
 ## Installation
 
 **Prerequisite**:
-To ensure proper functionality, you must install [Obsidian Dataview](https://github.com/blacksmithgu/obsidian-dataview) alongside this plugin.
+1. To ensure proper functionality, you must install [Obsidian Dataview](https://github.com/blacksmithgu/obsidian-dataview) alongside this plugin.
+2. If you also installed [Natural Language Dates](https://github.com/argenos/nldates-obsidian), make sure to change its "Trigger phrase" to something other than `@`, or just disable its data autosuggest feature.
 
 This plugin is currently under review by the moderators before added to
 the official plugins directory. if you want to try it now,
