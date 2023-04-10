@@ -109,6 +109,7 @@ class PeopleLinkSettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.dataviewSource)
 				.onChange(async (value) => {
 					this.plugin.settings.dataviewSource = value;
+					this.plugin.peopleSuggest.setSuggestionsCacheValidity(false)
 					await this.plugin.saveSettings();
 				}));
 
@@ -142,7 +143,6 @@ class PeopleLinkSettingTab extends PluginSettingTab {
 				.setValue(this.plugin.settings.newPersonLocation)
 				.onChange(async (value) => {
 					this.plugin.settings.newPersonLocation = value
-					this.plugin.peopleSuggest.setSuggestionsCacheValidity(false)
 					await this.plugin.saveSettings();
 				}));
 
