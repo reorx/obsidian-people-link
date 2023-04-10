@@ -6,7 +6,7 @@ import {
 } from 'obsidian';
 import { DataviewApi, getAPI } from 'obsidian-dataview';
 import {
-  debugLog, createFile, generateLinkFromName, openFile, NewPaneDirection, FileViewMode,
+  createFile, generateLinkFromName, openFile, NewPaneDirection, FileViewMode, logger,
 } from 'utils';
 
 import type PeopleLinkPluginSettings from './main';
@@ -51,7 +51,7 @@ export default class PeopleSuggest extends EditorSuggest<PersonSuggestion> {
 
 	getSuggestions(context: EditorSuggestContext): PersonSuggestion[] {
 		const dv = this.getDataviewAPI()
-		debugLog('getSuggestions', context.query)
+		logger.debug('getSuggestions', context)
 		if (!dv) return [{
 			label: 'Error: cannot get Dataview plugin',
 			dataviewError: true,
@@ -79,7 +79,7 @@ export default class PeopleSuggest extends EditorSuggest<PersonSuggestion> {
 		const fuseResult = fuse.search(query, {
 			limit: 5,
 		})
-		debugLog('fuse result', fuseResult, fuseThreshold)
+		logger.debug('fuse result', fuseResult, fuseThreshold)
 
 		const suggestions: PersonSuggestion[] = []
 		let hasExactMatch = false
@@ -97,7 +97,7 @@ export default class PeopleSuggest extends EditorSuggest<PersonSuggestion> {
 				suggestions.push(item.item)
 			}
 		}
-		debugLog('suggestions', suggestions)
+		logger.debug('suggestions', suggestions)
 
 		// add default suggestion if there is no result or no exact match
 		const defaultSuggestion = {
@@ -117,7 +117,7 @@ export default class PeopleSuggest extends EditorSuggest<PersonSuggestion> {
 				this.plugin.registerEvent(
 					this.app.metadataCache.on('dataview:metadata-change', (op, file, oldFile?) => {
 						if (op === 'rename' || op === 'delete') {
-							debugLog('dataview:metadata-change rename|delete', op, file, oldFile)
+							logger.debug('dataview:metadata-change rename|delete', op, file, oldFile)
 							this.setSuggestionsCacheValidity(false)
 						}
 					})
@@ -135,13 +135,13 @@ export default class PeopleSuggest extends EditorSuggest<PersonSuggestion> {
 		this.dv!.pages(dataviewSource).sort(o => o.file.mtime, 'desc').forEach(page => {
 			cache.push(pageToSuggestion(page as DataArrayItem))
 		})
-		debugLog('updateSuggestionsCache', cache)
+		logger.debug('updateSuggestionsCache', cache)
 		this.suggestionsCache = cache
 		this.setSuggestionsCacheValidity(true)
 	}
 
 	setSuggestionsCacheValidity(flag: boolean) {
-		debugLog('setSuggestionsCacheValidity', flag)
+		logger.debug('setSuggestionsCacheValidity', flag)
 		this.suggestionsCacheIsVaild = flag
 	}
 
@@ -156,7 +156,7 @@ export default class PeopleSuggest extends EditorSuggest<PersonSuggestion> {
 	}
 
 	selectSuggestion(suggestion: PersonSuggestion, event: KeyboardEvent | MouseEvent): void {
-		debugLog('selectSuggestion', event)
+		logger.debug('selectSuggestion', event)
 		if (suggestion.dataviewError) {
 			new DataviewErrorModal(this.app).open()
 			return

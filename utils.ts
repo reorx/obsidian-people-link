@@ -7,11 +7,29 @@ import { getNotePath } from 'vault';
 export const DEBUG = !(process.env.BUILD_ENV === 'production')
 if (DEBUG) console.log('DEBUG is enabled')
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function debugLog(...args: any[]) {
-	if (DEBUG) {
-		console.log((new Date()).toISOString().slice(11, 23), ...args)
-	}
+export const logger = {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	_args(...args: any[]) {
+		return [`${(new Date()).toISOString().slice(11, 23)} [people-link]`, ...args]
+	},
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	debug(...args: any[]) {
+		if (DEBUG) {
+			console.log(...this._args(...args))
+		}
+	},
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	log(...args: any[]) {
+		console.log(...this._args(...args))
+	},
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	warn(...args: any[]) {
+		console.warn(...this._args(...args))
+	},
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	error(...args: any[]) {
+		console.error(...this._args(...args))
+	},
 }
 
 
