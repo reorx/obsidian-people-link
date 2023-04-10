@@ -1,6 +1,7 @@
 import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
 import { getAPI } from 'obsidian-dataview';
 import PeopleSuggest from 'suggest';
+import { logger } from 'utils';
 
 
 interface PeopleLinkPluginSettings {
@@ -97,21 +98,56 @@ class PeopleLinkSettingTab extends PluginSettingTab {
 
 		const dataviewSetting = new Setting(containerEl)
 			.setName('Dataview Source')
-			.setDesc(`The dataview source is used to identify notes for people. It can be folders, tags, files, or a combination of them. Check more information at Dataview docs: `);
+			.setDesc(`The dataview source is used to identify notes for people. It can be folders, tags, files, or a combination of them. Check more information at Dataview documentation of `);
 		dataviewSetting.descEl.createEl('a', {
 			text: 'Sources',
 			attr: {
 				href: 'https://blacksmithgu.github.io/obsidian-dataview/reference/sources/'
 			}
 		})
+		const dataviewPreview = dataviewSetting.settingEl.createEl('div', {
+			attr: {
+				'style': 'margin: -0.25em 0 0.75em; padding: 0.75em; background: var(--color-base-20);'
+			}
+		})
+		dataviewSetting.settingEl.insertAdjacentElement('afterend', dataviewPreview)
+		dataviewPreview.createEl('div', {
+			text: 'Query preview',
+			attr: {
+				'style': 'padding-bottom: 0.3em;'
+			}
+		})
+		const dataviewPreviewContent = dataviewPreview.createEl('div', {
+			attr: {
+				'style': 'font-size: .8em; font-family: monospace; white-space: pre-wrap;'
+			}
+		})
+		const updateDataviewPreview = () => {
+			const dv = getAPI()
+			let html = ''
+			if (dv) {
+				try {
+					const result = dv.pages(this.plugin.settings.dataviewSource)
+					html = `Success, got ${result.length} people in result`
+					logger.debug('dataview result', result)
+				} catch (err) {
+					html = `${err}`
+				}
+			} else {
+				html = `Error: could not get dataview API`
+			}
+			dataviewPreviewContent.innerHTML = html
+		}
 		dataviewSetting
 			.addText(text => text
 				.setValue(this.plugin.settings.dataviewSource)
 				.onChange(async (value) => {
 					this.plugin.settings.dataviewSource = value;
 					this.plugin.peopleSuggest.setSuggestionsCacheValidity(false)
+					updateDataviewPreview()
 					await this.plugin.saveSettings();
 				}));
+		updateDataviewPreview()
 
 		new Setting(containerEl)
 			.setName('Suggestions Limit')
