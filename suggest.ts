@@ -113,9 +113,6 @@ export default class PeopleSuggest extends EditorSuggest<PersonSuggestion> {
 		if (!this.dv) {
 			this.dv = getAPI(this.app);
 			if (this.dv) {
-				// init people files cache
-				this.updateSuggestionsCache()
-
 				// listen to dataview event on metadata cache
 				this.plugin.registerEvent(
 					this.app.metadataCache.on('dataview:metadata-change', (op, file, oldFile?) => {
