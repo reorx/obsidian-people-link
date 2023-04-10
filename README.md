@@ -82,7 +82,7 @@ leaving the content you typed unchanged.
 
 You would see the following warnings in the setting tab if the plugin does not work properly:
 
-![](images/2023-04-10-14-19-51.png)
+![](images/warnings.png)
 
 Please follow the instructions to fix the issues. If there's no warnings in the settings tab,
 but the plugin still does not work, please open an issue in this repository.
