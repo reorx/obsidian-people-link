@@ -46,7 +46,7 @@ For more information, please refer to the Dataview documentation of [Sources](ht
 
 Simply type `@` in a note, you'll see a list of suggestions of the people in your vault.
 
-![](images/suggestions.png)
+<img src="images/suggestions.png" width="330">
 
 People in the suggestions list are sorted by their last modified date from newest to oldest.
 The number of results is limited to 5, you can change this in the settings.
@@ -54,7 +54,7 @@ The number of results is limited to 5, you can change this in the settings.
 When you start typing more letters, a fuzzy search will be performed,
 updating the most relevant suggestions as you type.
 
-![](images/suggestions-ste.png)
+<img src="images/suggestions-ste.png" width="330">
 
 You can use the arrow keys or <kbd>⌃ n</kbd>, <kbd>⌃ p</kbd> to navigate through the suggestions.
 When you press Enter, the link to the selected note will be created.
@@ -64,7 +64,7 @@ When you press Enter, the link to the selected note will be created.
 If the person does not exist yet, the color of the suggestion is dimmed and has a `(new)` suffix,
 indicating that it will be created when you press Enter. This behavior could be disabled in the settings.
 
-![](images/create-person.png)
+<img src="images/create-person.png" width="330">
 
 The new note is create at the specified location in the settings.
 Upon creation, it opens in a split pane,
